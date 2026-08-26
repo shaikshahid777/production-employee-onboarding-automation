@@ -1,0 +1,80 @@
+{
+  "name": "Pipeline D - Global Error Logger",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Pipeline D — Global Error Logger\n\nSet this workflow as the **Error Workflow** in the settings of Pipelines A, B and C.\n\nOn any failure it captures the workflow name/id, execution id, failing node, error message and stack trace, then inserts a row into capstone_error_log.",
+        "height": 240,
+        "width": 480
+      },
+      "id": "1268c720-45d5-444b-a341-238701c04f31",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -144
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "83ed2a53-4581-45de-b80a-53267e1e4cfb",
+      "name": "[Pipeline D] On Workflow Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO capstone_error_log\n  (workflow_name, workflow_id, execution_id, node_name, error_message, stack_trace)\nVALUES ($1, $2, $3, $4, $5, $6);",
+        "options": {
+          "queryReplacement": "={{ $json.workflow?.name || \"\" }}, {{ $json.workflow?.id || \"\" }}, {{ $json.execution?.id || \"\" }}, {{ $json.execution?.lastNodeExecuted || \"\" }}, {{ $json.execution?.error?.message || \"\" }}, {{ $json.execution?.error?.stack || \"\" }}"
+        }
+      },
+      "id": "463906d9-bb14-4fde-ae0f-33d7bd8b1d5a",
+      "name": "[Pipeline D] SQL_LogError",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NxoTycunkgjzK2cK",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "[Pipeline D] On Workflow Error": {
+      "main": [
+        [
+          {
+            "node": "[Pipeline D] SQL_LogError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6f7ac2a0-6d25-4f02-bc2b-fd278c6306f5",
+  "meta": {
+    "instanceId": "201381d913fa9e78389f7093cb99cedc70c766251a500f897db19feccfda3bd0"
+  },
+  "nodeGroups": [],
+  "id": "vnPLWg7jLw1kxY3a",
+  "tags": []
+}

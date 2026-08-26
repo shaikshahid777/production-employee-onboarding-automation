@@ -1,0 +1,141 @@
+{
+  "name": "Pipeline B - IT Provision Worker",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Pipeline B — IT Provision Worker\n\nReusable child workflow invoked by Pipeline A for Engineering employees.\n\nInputs: employee_id, department, role.\n\nSimulates GitHub/IT provisioning, then marks it_provisioned = TRUE in capstone_employees.",
+        "height": 240,
+        "width": 460
+      },
+      "id": "5643daee-7015-46c1-b7a2-c17682563cb3",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "employee_id",
+              "type": "number"
+            },
+            {
+              "name": "department"
+            },
+            {
+              "name": "role"
+            }
+          ]
+        }
+      },
+      "id": "38acb2e5-4e3f-4362-880d-1e2dc24958d3",
+      "name": "[Pipeline B] When Called by Orchestrator",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "number"
+            },
+            {
+              "id": "a2",
+              "name": "github_repo_access",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "a3",
+              "name": "provisioning_note",
+              "value": "={{ \"GitHub org access + repo permissions provisioned for role \" + $json.role + \" (\" + $json.department + \")\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "539f8dcf-0d1a-4552-8e97-795be1acae19",
+      "name": "[Pipeline B] Simulate GitHub Provisioning",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE capstone_employees\nSET it_provisioned = TRUE, updated_at = NOW()\nWHERE employee_id = $1\nRETURNING employee_id, it_provisioned;",
+        "options": {
+          "queryReplacement": "={{ [$json.employee_id] }}"
+        }
+      },
+      "id": "3e06e467-f888-4bf2-868a-53dcab52e798",
+      "name": "[Pipeline B] SQL_UpdateITProvisioned",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NxoTycunkgjzK2cK",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "[Pipeline B] When Called by Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "[Pipeline B] Simulate GitHub Provisioning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[Pipeline B] Simulate GitHub Provisioning": {
+      "main": [
+        [
+          {
+            "node": "[Pipeline B] SQL_UpdateITProvisioned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e4544bc8-5ea2-4f2c-b99b-8cf17ef1915b",
+  "meta": {
+    "instanceId": "201381d913fa9e78389f7093cb99cedc70c766251a500f897db19feccfda3bd0"
+  },
+  "nodeGroups": [],
+  "id": "OX8kVa3QHGwGZ2Nh",
+  "tags": []
+}

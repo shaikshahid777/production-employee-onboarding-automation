@@ -1,0 +1,141 @@
+{
+  "name": "Pipeline C - HR Provision Worker",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Pipeline C — HR Provision Worker\n\nReusable child workflow invoked by Pipeline A for HR / Marketing employees.\n\nInputs: employee_id, department, role.\n\nSimulates payroll & benefits setup, then marks hr_payroll_setup = TRUE in capstone_employees.",
+        "height": 240,
+        "width": 460
+      },
+      "id": "cfb58607-9f8d-42f3-9e64-82e00c15b1fd",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -272
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "employee_id",
+              "type": "number"
+            },
+            {
+              "name": "department"
+            },
+            {
+              "name": "role"
+            }
+          ]
+        }
+      },
+      "id": "4fb0de7b-9e47-4a39-b95d-e233c53d6388",
+      "name": "[Pipeline C] When Called by Orchestrator",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "employee_id",
+              "value": "={{ $json.employee_id }}",
+              "type": "number"
+            },
+            {
+              "id": "a2",
+              "name": "payroll_account",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "a3",
+              "name": "payroll_note",
+              "value": "={{ \"Payroll account + benefits enrollment provisioned for role \" + $json.role + \" (\" + $json.department + \")\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d8051b27-8a97-4cbd-b6e8-b83314630e5f",
+      "name": "[Pipeline C] Simulate Payroll Setup",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE capstone_employees\nSET hr_payroll_setup = TRUE, updated_at = NOW()\nWHERE employee_id = $1\nRETURNING employee_id, hr_payroll_setup;",
+        "options": {
+          "queryReplacement": "={{ [$json.employee_id] }}"
+        }
+      },
+      "id": "ee19d722-2491-4944-b262-1a78b97a2341",
+      "name": "[Pipeline C] SQL_UpdateHRPayroll",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NxoTycunkgjzK2cK",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "[Pipeline C] When Called by Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "[Pipeline C] Simulate Payroll Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[Pipeline C] Simulate Payroll Setup": {
+      "main": [
+        [
+          {
+            "node": "[Pipeline C] SQL_UpdateHRPayroll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "53b911ad-e145-47f8-ada2-83633369be5f",
+  "meta": {
+    "instanceId": "201381d913fa9e78389f7093cb99cedc70c766251a500f897db19feccfda3bd0"
+  },
+  "nodeGroups": [],
+  "id": "X3JI4cnsMY8b1gsQ",
+  "tags": []
+}

@@ -1,0 +1,65 @@
+{
+  "name": "Capstone - DB Init (one-off)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "87d9580a-022e-4a51-a0f1-2bf0959af76d",
+      "name": "Run DB Init",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS capstone_employees (\n    employee_id       SERIAL PRIMARY KEY,\n    full_name         VARCHAR(200)  NOT NULL,\n    email             VARCHAR(255)  NOT NULL UNIQUE,\n    department        VARCHAR(100)  NOT NULL,\n    role              VARCHAR(100)  NOT NULL,\n    approval_status   VARCHAR(30)   NOT NULL DEFAULT 'pending',\n    it_provisioned    BOOLEAN       NOT NULL DEFAULT FALSE,\n    hr_payroll_setup  BOOLEAN       NOT NULL DEFAULT FALSE,\n    created_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),\n    updated_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW()\n);\n\nCREATE INDEX IF NOT EXISTS idx_capstone_employees_email\n    ON capstone_employees (email);\n\nCREATE TABLE IF NOT EXISTS capstone_onboarding_tasks (\n    task_id       SERIAL PRIMARY KEY,\n    employee_id   INTEGER      NOT NULL REFERENCES capstone_employees (employee_id) ON DELETE CASCADE,\n    task_name     VARCHAR(200) NOT NULL,\n    status        VARCHAR(30)  NOT NULL DEFAULT 'pending',\n    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()\n);\n\nCREATE INDEX IF NOT EXISTS idx_capstone_tasks_employee\n    ON capstone_onboarding_tasks (employee_id);\n\nCREATE TABLE IF NOT EXISTS capstone_error_log (\n    error_id        SERIAL PRIMARY KEY,\n    workflow_name   VARCHAR(200),\n    workflow_id     VARCHAR(100),\n    execution_id    VARCHAR(100),\n    node_name       VARCHAR(200),\n    error_message   TEXT,\n    stack_trace     TEXT,\n    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "2a4f8f4e-3684-4430-bb63-354b2d619dbd",
+      "name": "Create Capstone Schema",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "NxoTycunkgjzK2cK",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run DB Init": {
+      "main": [
+        [
+          {
+            "node": "Create Capstone Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8f3c247d-dcc6-4831-860a-2ca74a62e5da",
+  "meta": {
+    "instanceId": "201381d913fa9e78389f7093cb99cedc70c766251a500f897db19feccfda3bd0"
+  },
+  "nodeGroups": [],
+  "id": "Lf7meFJDK8XxAt4E",
+  "tags": []
+}
